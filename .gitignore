@@ -1,0 +1,27 @@
+# Compiled executables
+*.exe
+*.out
+*.o
+*.a
+
+# Generated MPI import library
+libmsmpi.a
+msmpi.def
+
+# Build artefacts
+serial
+openmp
+mpi_matmul
+hybrid
+
+# VS Code
+.vscode/
+
+# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Temp files
+*.tmp
+*.log

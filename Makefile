@@ -4,39 +4,50 @@
 # ============================================================
 
 CC      = gcc
-MPICC   = mpicc
 CFLAGS  = -O2 -Wall
 OMP     = -fopenmp
 MATH    = -lm
 
+# MS-MPI paths (Windows / MinGW)
+MPI_INC = "C:/Program Files (x86)/Microsoft SDKs/MPI/Include"
+MPI_LIB = "C:/Program Files (x86)/Microsoft SDKs/MPI/Lib/x64"
+
+EXE_EXT = .exe
+
 all: serial openmp mpi hybrid
 
 serial: 1_serial.c
-	$(CC) $(CFLAGS) -o serial 1_serial.c $(MATH)
+	$(CC) $(CFLAGS) -o serial$(EXE_EXT) 1_serial.c $(MATH)
 
 openmp: 2_openmp.c
-	$(CC) $(CFLAGS) $(OMP) -o openmp 2_openmp.c $(MATH)
+	$(CC) $(CFLAGS) $(OMP) -o openmp$(EXE_EXT) 2_openmp.c $(MATH)
 
-mpi: 3_mpi.c
-	$(MPICC) $(CFLAGS) -o mpi_matmul 3_mpi.c $(MATH)
+mpi: 3_mpi.c libmsmpi.a
+	$(CC) $(CFLAGS) -I$(MPI_INC) -L. -o mpi_matmul$(EXE_EXT) 3_mpi.c -lmsmpi $(MATH)
 
-hybrid: 4_hybrid.c
-	$(MPICC) $(CFLAGS) $(OMP) -o hybrid 4_hybrid.c $(MATH)
+hybrid: 4_hybrid.c libmsmpi.a
+	$(CC) $(CFLAGS) $(OMP) -I$(MPI_INC) -L. -o hybrid$(EXE_EXT) 4_hybrid.c -lmsmpi $(MATH)
+
+# Generate MinGW-compatible import library from msmpi.dll
+libmsmpi.a:
+	gendef "C:/Windows/System32/msmpi.dll"
+	dlltool -d msmpi.def -l libmsmpi.a -D msmpi.dll
+	del msmpi.def 2>nul || true
 
 clean:
-	rm -f serial openmp mpi_matmul hybrid
+	del /Q serial.exe openmp.exe mpi_matmul.exe hybrid.exe libmsmpi.a msmpi.def 2>nul || true
 
 # ---- Quick test runs (N=256) ----
 run_serial:
-	./serial 256
+	serial.exe 256
 
 run_openmp:
-	./openmp 256 4
+	openmp.exe 256 4
 
 run_mpi:
-	mpirun -np 4 ./mpi_matmul 256
+	mpiexec -n 4 mpi_matmul.exe 256
 
 run_hybrid:
-	mpirun -np 2 ./hybrid 256 4
+	mpiexec -n 2 hybrid.exe 256 4
 
 .PHONY: all clean run_serial run_openmp run_mpi run_hybrid

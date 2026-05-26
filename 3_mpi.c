@@ -78,9 +78,9 @@ int main(int argc, char *argv[]) {
     double *A       = NULL;   /* full matrix A  – rank 0 only   */
     double *C_mpi   = NULL;   /* full result C  – rank 0 only   */
     double *C_serial= NULL;   /* serial result  – rank 0 only   */
-    double *B       = alloc_matrix(N);              /* every rank needs full B */
-    double *local_A = alloc_matrix(rows_per_proc * N); /* local rows of A        */
-    double *local_C = alloc_matrix(rows_per_proc * N); /* local rows of C        */
+    double *B       = alloc_matrix(N);                                    /* full B: N×N */
+    double *local_A = (double *)calloc(rows_per_proc * N, sizeof(double)); /* rows_per_proc × N */
+    double *local_C = (double *)calloc(rows_per_proc * N, sizeof(double));
 
     /* ── Rank 0 initialises data ── */
     double t_start = 0.0, t_end = 0.0;
